@@ -52,7 +52,12 @@ export default function LoginForm() {
     }
   };
 
-  const handleFillDemo = () => {
+  const handleFillTraveler = () => {
+    setValue('email', 'user@globetrotter.com');
+    setValue('password', 'User@123456');
+  };
+
+  const handleFillAdmin = () => {
     setValue('email', 'admin@globetrotter.com');
     setValue('password', 'Admin@123456');
   };
@@ -66,15 +71,31 @@ export default function LoginForm() {
         </p>
       </div>
 
-      {/* Demo Credentials Quick-Fill */}
-      <button
-        type="button"
-        onClick={handleFillDemo}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#FF6433]/30 bg-[#FEF3EE] px-3.5 py-2.5 text-xs font-bold text-[#FF6433] hover:bg-[#FDE7DE] transition"
-      >
-        <Sparkles className="h-4 w-4" />
-        Fill Admin Credentials (admin@globetrotter.com)
-      </button>
+      {/* Demo Credentials Quick-Fill Buttons */}
+      <div className="space-y-2">
+        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        Quick Demo Logins
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={handleFillTraveler}
+            className="flex items-center justify-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 transition"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+            Traveler Demo
+          </button>
+          <button
+            type="button"
+            onClick={handleFillAdmin}
+            className="flex items-center justify-center gap-1.5 rounded-2xl border border-[#FF6433]/30 bg-[#FEF3EE] px-3 py-2 text-xs font-bold text-[#FF6433] hover:bg-[#FDE7DE] transition"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-[#FF6433]" />
+            Admin Demo
+          </button>
+        </div>
+      </div>
+
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Email */}
