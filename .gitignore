@@ -25,3 +25,11 @@ backend/.env
 .DS_Store
 Thumbs.db
 *.log
+
+# AI / Planning / Prompt docs
+AGENTS.md
+CLAUDE.md
+*TODO*.md
+DEV_*.md
+docs/
+PLAN.md
