@@ -12,6 +12,7 @@ devloper d.md
 devloper*.md
 *.md
 !FrontEnd/README.md
+!README.md
 
 # Dependencies & Build Output
 node_modules/
