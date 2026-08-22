@@ -22,7 +22,6 @@ export interface User {
   };
 }
 
-
 export interface City {
   id: string;
   name: string;
@@ -147,4 +146,20 @@ export interface AddStopActivityInput {
   day: number;
   expense?: number;
   notes?: string;
+}
+
+export interface GooglePlaceSuggestion {
+  id: string;
+  displayName: string;
+  formattedAddress?: string;
+  rating?: number;
+  userRatingCount?: number;
+  primaryType?: string;
+  types?: string[];
+  photoUrl?: string;
+  googleMapsUri?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
