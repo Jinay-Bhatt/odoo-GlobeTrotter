@@ -13,7 +13,10 @@ import {
   ChevronDown,
   Menu,
   X,
-  Sparkles,
+  MessageSquare,
+  Globe,
+  User,
+  Shield,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -30,8 +33,10 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/trips', label: 'My Trips', icon: MapPin },
-    { href: '/trips/new', label: 'Plan Trip', icon: PlusCircle },
+    { href: '/cities', label: 'Explore', icon: Globe },
+    { href: '/community', label: 'Community', icon: MessageSquare },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
+    { href: '/trips/new', label: 'Plan Trip', icon: PlusCircle },
   ];
 
   return (
@@ -119,6 +124,14 @@ export default function Navbar() {
 
                     <div className="py-1">
                       <Link
+                        href="/profile"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex w-full items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-[#FAF8F5]"
+                      >
+                        <User className="h-4 w-4 text-slate-400" />
+                        My Profile & Settings
+                      </Link>
+                      <Link
                         href="/trips"
                         onClick={() => setDropdownOpen(false)}
                         className="flex w-full items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-[#FAF8F5]"
@@ -126,14 +139,16 @@ export default function Navbar() {
                         <MapPin className="h-4 w-4 text-slate-400" />
                         My Itineraries
                       </Link>
-                      <Link
-                        href="/trips/new"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-[#FAF8F5]"
-                      >
-                        <PlusCircle className="h-4 w-4 text-slate-400" />
-                        Create New Trip
-                      </Link>
+                      {user.role === 'ADMIN' && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex w-full items-center gap-2 px-4 py-2 text-xs font-medium text-purple-700 hover:bg-purple-50"
+                        >
+                          <Shield className="h-4 w-4 text-purple-500" />
+                          Admin Dashboard
+                        </Link>
+                      )}
                     </div>
 
                     <div className="border-t border-slate-100 py-1">
@@ -201,6 +216,24 @@ export default function Navbar() {
                 </Link>
               );
             })}
+            <Link
+              href="/profile"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-600 hover:bg-[#FAF8F5]"
+            >
+              <User className="h-4 w-4" />
+              My Profile
+            </Link>
+            {user?.role === 'ADMIN' && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-purple-700 hover:bg-purple-50"
+              >
+                <Shield className="h-4 w-4" />
+                Admin Dashboard
+              </Link>
+            )}
             <button
               onClick={() => {
                 setMobileMenuOpen(false);

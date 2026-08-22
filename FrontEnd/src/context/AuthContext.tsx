@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthResponse } from '@/types';
-import { mockCurrentUser } from '@/lib/mockData';
 import api from '@/lib/api';
 
 interface AuthContextType {
@@ -43,7 +42,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (storedToken) {
           setToken(storedToken);
-          // Try validating with live backend /api/auth/me
           try {
             const res = await api.get<{ user: User }>('/api/auth/me');
             if (res.data?.user) {
@@ -52,21 +50,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               return;
             }
           } catch {
-            // If offline or live server unavailable, fallback to cached user or mock
+            if (storedUser) {
+              setUser(JSON.parse(storedUser));
+            }
           }
-
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-          } else {
-            setUser(mockCurrentUser);
-          }
-        } else {
-          // Default to mock user for mock-first rapid development
-          const initialMockToken = 'mock-jwt-token-dev-c';
-          localStorage.setItem(TOKEN_KEY, initialMockToken);
-          localStorage.setItem(USER_KEY, JSON.stringify(mockCurrentUser));
-          setToken(initialMockToken);
-          setUser(mockCurrentUser);
         }
       } catch {
         setUser(null);
@@ -82,23 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
-      let authRes: AuthResponse;
-      try {
-        const res = await api.post<AuthResponse>('/api/auth/login', { email, password });
-        authRes = res.data;
-      } catch (err: any) {
-        if (err.response?.status === 401 || err.response?.status === 400) {
-          throw err;
-        }
-        // Fallback to mock login if backend is unreachable
-        authRes = {
-          token: `mock-token-${Date.now()}`,
-          user: {
-            ...mockCurrentUser,
-            email,
-          },
-        };
-      }
+      const res = await api.post<AuthResponse>('/api/auth/login', { email, password });
+      const authRes = res.data;
 
       localStorage.setItem(TOKEN_KEY, authRes.token);
       localStorage.setItem(USER_KEY, JSON.stringify(authRes.user));
@@ -122,31 +94,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
-      let authRes: AuthResponse;
-      try {
-        const res = await api.post<AuthResponse>('/api/auth/register', data);
-        authRes = res.data;
-      } catch (err: any) {
-        if (err.response?.status === 409 || err.response?.status === 400) {
-          throw err;
-        }
-        // Fallback to mock registration
-        authRes = {
-          token: `mock-token-${Date.now()}`,
-          user: {
-            id: `user-${Date.now()}`,
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            phone: data.phone || null,
-            city: data.city || null,
-            country: data.country || null,
-            photo: data.photo || null,
-            role: 'TRAVELER',
-            createdAt: new Date().toISOString(),
-          },
-        };
-      }
+      const res = await api.post<AuthResponse>('/api/auth/register', data);
+      const authRes = res.data;
 
       localStorage.setItem(TOKEN_KEY, authRes.token);
       localStorage.setItem(USER_KEY, JSON.stringify(authRes.user));

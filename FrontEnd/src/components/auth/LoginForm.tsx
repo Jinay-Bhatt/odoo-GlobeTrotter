@@ -53,8 +53,8 @@ export default function LoginForm() {
   };
 
   const handleFillDemo = () => {
-    setValue('email', 'alex.traveler@example.com');
-    setValue('password', 'password123');
+    setValue('email', 'admin@globetrotter.com');
+    setValue('password', 'Admin@123456');
   };
 
   return (
@@ -73,7 +73,7 @@ export default function LoginForm() {
         className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#FF6433]/30 bg-[#FEF3EE] px-3.5 py-2.5 text-xs font-bold text-[#FF6433] hover:bg-[#FDE7DE] transition"
       >
         <Sparkles className="h-4 w-4" />
-        Fill Demo Traveler Credentials (alex.traveler@example.com)
+        Fill Admin Credentials (admin@globetrotter.com)
       </button>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
