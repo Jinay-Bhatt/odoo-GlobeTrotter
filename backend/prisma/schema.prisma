@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  city      String?
+  country   String?
+  photo     String?
+  role      Role     @default(TRAVELER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trips Trip[]
+  posts CommunityPost[]
+}
+
+enum Role {
+  TRAVELER
+  ADMIN
+}
+
+model Trip {
+  id          String     @id @default(uuid())
+  name        String     @db.VarChar(100)
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  coverPhoto  String?
+  status      TripStatus @default(DRAFT)
+  isPublic    Boolean    @default(false)
+  shareToken  String?    @unique
+  totalBudget Float      @default(0)
+  userId      String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user       User           @relation(fields: [userId], references: [id])
+  sections   Section[]
+  posts      CommunityPost[]
+}
+
+enum TripStatus {
+  DRAFT
+  UPCOMING
+  ONGOING
+  COMPLETED
+}
+
+model Section {
+  id           String   @id @default(uuid())
+  name         String
+  sectionStart DateTime
+  sectionEnd   DateTime
+  budget       Float    @default(0)
+  sequence     Int      @default(0)
+  tripId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  trip       Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  activities StopActivity[]
+}
+
+model City {
+  id         String     @id @default(uuid())
+  name       String
+  country    String
+  image      String?
+  popularity Int        @default(0)
+  activities Activity[]
+}
+
+model Activity {
+  id            String         @id @default(uuid())
+  name          String
+  category      Category
+  estimatedCost Float          @default(0)
+  cityId        String
+  city          City           @relation(fields: [cityId], references: [id])
+  stops         StopActivity[]
+}
+
+enum Category {
+  ADVENTURE
+  CULTURE
+  FOOD
+  NATURE
+  OTHER
+}
+
+model StopActivity {
+  id         String   @id @default(uuid())
+  day        Int
+  expense    Float    @default(0)
+  notes      String?
+  sectionId  String
+  activityId String
+
+  section  Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  activity Activity @relation(fields: [activityId], references: [id])
+}
+
+model CommunityPost {
+  id        String   @id @default(uuid())
+  content   String
+  image     String?
+  tripId    String?
+  userId    String
+  createdAt DateTime @default(now())
+
+  trip Trip? @relation(fields: [tripId], references: [id])
+  user User  @relation(fields: [userId], references: [id])
+}
