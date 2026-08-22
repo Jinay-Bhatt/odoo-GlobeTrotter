@@ -1,14 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
 import AdminDashboardView from '@/components/admin/AdminDashboardView';
 import { useAuth } from '@/hooks/useAuth';
 import { ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.role !== 'ADMIN') {
+      router.replace('/trips');
+    }
+  }, [user, router]);
 
   if (user && user.role !== 'ADMIN') {
     return (
@@ -19,7 +27,7 @@ export default function AdminPage() {
           </div>
           <h1 className="mt-4 text-2xl font-black text-slate-900">Access Restricted</h1>
           <p className="mt-2 text-xs font-semibold text-slate-500">
-            You do not have Administrator permissions to access this control panel.
+            You do not have Administrator permissions to access this control panel. Redirecting to My Trips...
           </p>
           <Link
             href="/trips"
@@ -31,6 +39,7 @@ export default function AdminPage() {
       </ProtectedRoute>
     );
   }
+
 
   return (
     <ProtectedRoute>

@@ -16,7 +16,12 @@ export interface User {
   role: Role;
   createdAt?: string;
   updatedAt?: string;
+  _count?: {
+    trips?: number;
+    posts?: number;
+  };
 }
+
 
 export interface City {
   id: string;

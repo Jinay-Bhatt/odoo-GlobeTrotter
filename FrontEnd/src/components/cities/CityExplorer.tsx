@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCities, useActivities } from '@/hooks/useCities';
 import { Category, City, Activity } from '@/types';
 import { Compass, Search, MapPin, Star, DollarSign, Filter, X, Loader2, Sparkles } from 'lucide-react';
@@ -20,13 +20,30 @@ export default function CityExplorer() {
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
 
   const { data: cities, isLoading: loadingCities } = useCities(searchTerm);
-  const { data: activities, isLoading: loadingActivities } = useActivities(
+  const { data: allActivities, isLoading: loadingAllActivities } = useActivities(
+    undefined,
+    selectedCategory === 'ALL' ? undefined : selectedCategory
+  );
+  const { data: cityActivities, isLoading: loadingCityActivities } = useActivities(
     selectedCity?.id,
     selectedCategory === 'ALL' ? undefined : selectedCategory
   );
 
+  // Filter cities by search term and selected category
+  const filteredCities = useMemo(() => {
+    if (!cities) return [];
+    let list = cities;
+
+    if (selectedCategory !== 'ALL' && allActivities) {
+      const cityIdsWithCategory = new Set(allActivities.map((a) => a.cityId));
+      list = list.filter((c) => cityIdsWithCategory.has(c.id));
+    }
+
+    return list;
+  }, [cities, selectedCategory, allActivities]);
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       {/* Header & Search Bar */}
       <div className="rounded-3xl border border-[#ECE6DE] bg-white p-6 sm:p-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -76,7 +93,7 @@ export default function CityExplorer() {
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition cursor-pointer ${
                   isActive
                     ? 'bg-[#FF6433] text-white shadow-xs'
                     : 'bg-[#FAF8F5] text-slate-600 border border-[#ECE6DE] hover:bg-white hover:text-slate-900'
@@ -90,15 +107,25 @@ export default function CityExplorer() {
       </div>
 
       {/* Cities Grid */}
-      <div className="mt-8">
-        {loadingCities ? (
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-black text-slate-900">
+            {selectedCategory === 'ALL' ? 'Popular Destinations' : `${selectedCategory} Destinations`}
+          </h2>
+          <span className="text-xs font-bold text-slate-400">
+            Showing {filteredCities.length} Cities
+          </span>
+        </div>
+
+        {loadingCities || loadingAllActivities ? (
           <div className="flex flex-col items-center justify-center py-16 text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin text-[#FF6433]" />
             <p className="mt-2 text-xs font-bold">Discovering destinations...</p>
           </div>
-        ) : cities && cities.length > 0 ? (
+        ) : filteredCities && filteredCities.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cities.map((city) => (
+            {filteredCities.map((city: City) => (
+
               <div
                 key={city.id}
                 onClick={() => setSelectedCity(city)}
@@ -147,11 +174,46 @@ export default function CityExplorer() {
             <Compass className="mx-auto h-10 w-10 text-slate-300" />
             <h3 className="mt-3 text-base font-bold text-slate-700">No destinations found</h3>
             <p className="mt-1 text-xs font-medium text-slate-400">
-              Try adjusting your search criteria or filters.
+              Try adjusting your search criteria or category filter.
             </p>
           </div>
         )}
       </div>
+
+      {/* Filtered Activities Direct View */}
+      {selectedCategory !== 'ALL' && allActivities && allActivities.length > 0 && (
+        <div className="rounded-3xl border border-[#ECE6DE] bg-white p-6 sm:p-8 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-black text-slate-900">
+              {selectedCategory} Activities Across Destinations
+            </h3>
+            <span className="text-xs font-bold text-slate-400">
+              {allActivities.length} Activities Found
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {allActivities.map((act) => (
+              <div
+                key={act.id}
+                className="flex items-center justify-between rounded-2xl border border-[#ECE6DE] bg-[#FAF8F5] p-4 transition hover:bg-white hover:shadow-xs"
+              >
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">{act.name}</h4>
+                  <p className="text-xs font-medium text-slate-500 flex items-center gap-1 mt-0.5">
+                    <MapPin className="h-3 w-3 text-[#FF6433]" />
+                    {act.city?.name || 'Destination'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 text-sm font-black text-slate-900 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200">
+                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                  {act.estimatedCost}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Selected City Detail Modal */}
       {selectedCity && (
@@ -169,7 +231,7 @@ export default function CityExplorer() {
               />
               <button
                 onClick={() => setSelectedCity(null)}
-                className="absolute right-4 top-4 rounded-full bg-slate-900/70 p-2 text-white hover:bg-slate-900 transition"
+                className="absolute right-4 top-4 rounded-full bg-slate-900/70 p-2 text-white hover:bg-slate-900 transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -189,13 +251,13 @@ export default function CityExplorer() {
                 Recommended Activities & Experiences
               </h3>
 
-              {loadingActivities ? (
+              {loadingCityActivities ? (
                 <div className="flex items-center justify-center py-10 text-slate-400">
                   <Loader2 className="h-6 w-6 animate-spin text-[#FF6433]" />
                 </div>
-              ) : activities && activities.length > 0 ? (
+              ) : cityActivities && cityActivities.length > 0 ? (
                 <div className="space-y-3">
-                  {activities.map((act) => (
+                  {cityActivities.map((act) => (
                     <div
                       key={act.id}
                       className="flex items-center justify-between rounded-2xl border border-[#ECE6DE] bg-[#FAF8F5] p-4 transition hover:bg-white hover:border-slate-300"
@@ -225,3 +287,4 @@ export default function CityExplorer() {
     </div>
   );
 }
+

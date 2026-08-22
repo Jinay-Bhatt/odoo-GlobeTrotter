@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getImageUrl } from '@/lib/api';
 import {
   Compass,
   MapPin,
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function Navbar() {
+
   const { user, logout, isAuthenticated } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -31,30 +33,45 @@ export default function Navbar() {
     router.push('/login');
   };
 
-  const navLinks = [
-    { href: '/trips', label: 'My Trips', icon: MapPin },
-    { href: '/cities', label: 'Explore', icon: Globe },
-    { href: '/community', label: 'Community', icon: MessageSquare },
-    { href: '/calendar', label: 'Calendar', icon: Calendar },
-    { href: '/trips/new', label: 'Plan Trip', icon: PlusCircle },
+  const baseNavLinks = [
+    { href: '/trips', label: 'My Trips', icon: MapPin, isAdmin: false },
+    { href: '/cities', label: 'Explore', icon: Globe, isAdmin: false },
+    { href: '/community', label: 'Community', icon: MessageSquare, isAdmin: false },
+    { href: '/calendar', label: 'Calendar', icon: Calendar, isAdmin: false },
+    { href: '/trips/new', label: 'Plan Trip', icon: PlusCircle, isAdmin: false },
   ];
+
+  const navLinks = user?.role === 'ADMIN'
+    ? [{ href: '/admin', label: 'Admin Panel', icon: Shield, isAdmin: true }, ...baseNavLinks]
+    : baseNavLinks;
+
+
+  const isAdminPage = pathname.startsWith('/admin') && user?.role === 'ADMIN';
+
 
   return (
     <header className="sticky top-0 z-40 px-4 sm:px-6 lg:px-8 pt-3 pb-2 bg-[#FAF8F5]/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between rounded-full border border-[#ECE6DE] bg-white/90 px-5 shadow-xs">
         {/* Brand Logo */}
-        <div className="flex items-center gap-8">
-          <Link href="/trips" className="flex items-center gap-2.5 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF6433] text-white shadow-sm shadow-[#FF6433]/30 transition group-hover:scale-105">
-              <Compass className="h-5 w-5" />
+        <div className="flex items-center gap-6">
+          <Link href={user?.role === 'ADMIN' ? '/admin' : '/trips'} className="flex items-center gap-2.5 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0F172A] text-white shadow-sm transition group-hover:scale-105">
+              <Compass className="h-5 w-5 text-[#FF6433]" />
             </div>
-            <span className="text-xl font-black tracking-tight text-[#0F172A]">
-              Around<span className="text-[#FF6433]">.</span>
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-black tracking-tight text-[#0F172A]">
+                GlobalTrotter
+              </span>
+              {isAdminPage && (
+                <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-purple-700 border border-purple-200">
+                  Admin Panel
+                </span>
+              )}
+            </div>
           </Link>
 
-          {/* Desktop Nav Links */}
-          {isAuthenticated && (
+          {/* Desktop Nav Links (Hidden when on Admin Page) */}
+          {isAuthenticated && !isAdminPage && (
             <nav className="hidden md:flex md:items-center md:gap-1.5 rounded-full bg-[#FAF8F5] p-1 border border-[#ECE6DE]/60">
               {navLinks.map((item) => {
                 const Icon = item.icon;
@@ -67,21 +84,34 @@ export default function Navbar() {
                     href={item.href}
                     className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold transition ${
                       isActive
-                        ? 'bg-[#FF6433] text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                        ? item.isAdmin ? 'bg-purple-700 text-white shadow-xs' : 'bg-[#FF6433] text-white shadow-xs'
+                        : item.isAdmin ? 'bg-purple-50 text-purple-700 hover:bg-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                     }`}
                   >
-                    <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                    <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : item.isAdmin ? 'text-purple-600' : 'text-slate-400'}`} />
                     {item.label}
                   </Link>
                 );
               })}
             </nav>
           )}
+
+          {/* Switch to Traveler View button (When on Admin Page) */}
+          {isAuthenticated && isAdminPage && (
+            <Link
+              href="/trips"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[#ECE6DE] bg-[#FAF8F5] px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-white hover:border-slate-300 transition"
+            >
+              <Globe className="h-3.5 w-3.5 text-[#FF6433]" />
+              Switch to Traveler View
+            </Link>
+          )}
         </div>
+
 
         {/* Right Section: User Dropdown or Login */}
         <div className="flex items-center gap-3">
+
           {isAuthenticated && user ? (
             <div className="relative">
               <button
@@ -90,10 +120,11 @@ export default function Navbar() {
               >
                 {user.photo ? (
                   <img
-                    src={user.photo}
+                    src={getImageUrl(user.photo)}
                     alt={`${user.firstName} ${user.lastName}`}
                     className="h-8 w-8 rounded-full object-cover ring-2 ring-[#FF6433]/20"
                   />
+
                 ) : (
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FEF3EE] text-[#FF6433] font-bold">
                     {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}

@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfile, useChangePassword, useUploadFile } from '@/hooks/useProfile';
+import { getImageUrl } from '@/lib/api';
+
+
 import { User, Shield, Camera, KeyRound, Loader2, CheckCircle2, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -13,6 +16,7 @@ interface ProfileFields {
   phone?: string;
   city?: string;
   country?: string;
+  photo?: string;
 }
 
 interface PasswordFields {
@@ -32,6 +36,7 @@ export default function ProfileForm() {
   const {
     register: registerProfile,
     handleSubmit: handleSubmitProfile,
+    setValue: setProfileValue,
     formState: { errors: profileErrors },
   } = useForm<ProfileFields>({
     defaultValues: {
@@ -40,6 +45,7 @@ export default function ProfileForm() {
       phone: user?.phone || '',
       city: user?.city || '',
       country: user?.country || '',
+      photo: user?.photo || '',
     },
   });
 
@@ -56,6 +62,7 @@ export default function ProfileForm() {
       const file = e.target.files[0];
       try {
         const photoUrl = await uploadFileMutation.mutateAsync(file);
+        setProfileValue('photo', photoUrl);
         const updated = await updateProfileMutation.mutateAsync({ photo: photoUrl });
         updateUser(updated);
         toast.success('Profile photo updated successfully!');
@@ -64,6 +71,7 @@ export default function ProfileForm() {
       }
     }
   };
+
 
   const onProfileSubmit = async (data: ProfileFields) => {
     try {
@@ -101,8 +109,9 @@ export default function ProfileForm() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12">
             <div className="relative h-24 w-24 rounded-full border-4 border-white bg-[#FEF3EE] shadow-md overflow-hidden group">
               {user.photo ? (
-                <img src={user.photo} alt={user.firstName} className="h-full w-full object-cover" />
+                <img src={getImageUrl(user.photo)} alt={user.firstName} className="h-full w-full object-cover" />
               ) : (
+
                 <div className="flex h-full w-full items-center justify-center text-2xl font-black text-[#FF6433]">
                   {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
                 </div>
@@ -216,7 +225,7 @@ export default function ProfileForm() {
                 />
               </div>
 
-              <div className="sm:col-span-2">
+              <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
                   Country
                 </label>
@@ -227,7 +236,23 @@ export default function ProfileForm() {
                   className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-[#FAF8F5] px-4 py-2.5 text-xs font-bold text-slate-800 focus:border-[#FF6433] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF6433]/20"
                 />
               </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Profile Photo URL
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  {...registerProfile('photo')}
+                  className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-[#FAF8F5] px-4 py-2.5 text-xs font-bold text-slate-800 focus:border-[#FF6433] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF6433]/20"
+                />
+                <p className="mt-1 text-[11px] font-medium text-slate-400">
+                  Paste an image URL directly or click the camera overlay on your avatar photo above to upload an image file.
+                </p>
+              </div>
             </div>
+
 
             <div className="flex justify-end pt-4 border-t border-slate-100">
               <button

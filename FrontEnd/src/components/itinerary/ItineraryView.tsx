@@ -2,9 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Trip, StopActivity } from '@/types';
 import DayBlock from '@/components/itinerary/DayBlock';
-import { useToggleShare, useCopyTrip } from '@/hooks/useTrips';
+import { useToggleShare, useCopyTrip, useDeleteTrip } from '@/hooks/useTrips';
 import toast from 'react-hot-toast';
 import {
   Calendar,
@@ -20,6 +21,7 @@ import {
   Sparkles,
   Info,
   Clock,
+  Trash2,
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 
@@ -28,10 +30,25 @@ interface ItineraryViewProps {
 }
 
 export default function ItineraryView({ trip }: ItineraryViewProps) {
+  const router = useRouter();
   const toggleShareMutation = useToggleShare();
   const copyTripMutation = useCopyTrip();
+  const deleteTripMutation = useDeleteTrip();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  const handleDeleteTrip = async () => {
+    if (confirm(`Are you sure you want to delete "${trip.name}"?`)) {
+      try {
+        await deleteTripMutation.mutateAsync(trip.id);
+        toast.success('Trip deleted successfully');
+        router.push('/trips');
+      } catch {
+        toast.error('Failed to delete trip');
+      }
+    }
+  };
+
 
   const startDateObj = new Date(trip.startDate);
   const endDateObj = new Date(trip.endDate);
@@ -137,17 +154,24 @@ export default function ItineraryView({ trip }: ItineraryViewProps) {
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <button
               onClick={handleToggleShare}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-slate-800 backdrop-blur-md hover:bg-white transition shadow-sm"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-slate-800 backdrop-blur-md hover:bg-white transition shadow-sm cursor-pointer"
             >
               <Share2 className="h-3.5 w-3.5 text-[#FF6433]" />
               {trip.isPublic ? 'Share Link' : 'Make Public'}
             </button>
             <button
               onClick={handleDuplicate}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-slate-800 backdrop-blur-md hover:bg-white transition shadow-sm"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-slate-800 backdrop-blur-md hover:bg-white transition shadow-sm cursor-pointer"
             >
               <Copy className="h-3.5 w-3.5 text-slate-700" />
               Duplicate
+            </button>
+            <button
+              onClick={handleDeleteTrip}
+              className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/90 px-4 py-2 text-xs font-bold text-white backdrop-blur-md hover:bg-rose-600 transition shadow-sm cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
             </button>
             <Link
               href={`/trips/${trip.id}/itinerary`}
@@ -157,6 +181,7 @@ export default function ItineraryView({ trip }: ItineraryViewProps) {
               Edit Chapters
             </Link>
           </div>
+
 
           {/* Title & Dates */}
           <div className="absolute bottom-6 left-6 right-6 text-white space-y-1.5">

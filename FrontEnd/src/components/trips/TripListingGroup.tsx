@@ -25,6 +25,8 @@ type TabFilter = 'ALL' | 'ONGOING' | 'UPCOMING' | 'COMPLETED';
 export default function TripListingGroup({ trips, isLoading }: TripListingGroupProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<TabFilter>('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const filteredTrips = useMemo(() => {
     return trips.filter((trip) => {
@@ -38,6 +40,23 @@ export default function TripListingGroup({ trips, isLoading }: TripListingGroupP
       return trip.status === activeTab;
     });
   }, [trips, searchQuery, activeTab]);
+
+  const totalPages = Math.ceil(filteredTrips.length / itemsPerPage) || 1;
+
+  const paginatedTrips = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredTrips.slice(start, start + itemsPerPage);
+  }, [filteredTrips, currentPage, itemsPerPage]);
+
+  const handleTabChange = (tab: TabFilter) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
 
   const counts = useMemo(() => {
     return {
@@ -135,7 +154,7 @@ export default function TripListingGroup({ trips, isLoading }: TripListingGroupP
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition ${
                   isActive
                     ? 'bg-[#0F172A] text-white shadow-xs'
@@ -165,22 +184,65 @@ export default function TripListingGroup({ trips, isLoading }: TripListingGroupP
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search trips by destination..."
             className="w-full rounded-full border border-[#ECE6DE] bg-white py-2.5 pl-10 pr-4 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#FF6433] focus:outline-none focus:ring-4 focus:ring-[#FF6433]/15 shadow-xs"
           />
         </div>
       </div>
 
-      {/* Trips Grid or Empty State */}
-      {filteredTrips.length > 0 ? (
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredTrips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} />
-          ))}
+      {/* Trips Grid & Pagination */}
+      {paginatedTrips.length > 0 ? (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {paginatedTrips.map((trip) => (
+              <TripCard key={trip.id} trip={trip} />
+            ))}
+          </div>
+
+          {/* Pagination Bar */}
+          {totalPages > 1 && (
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#ECE6DE] bg-white px-6 py-4 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500">
+                Showing Page <strong className="text-slate-900">{currentPage}</strong> of <strong className="text-slate-900">{totalPages}</strong> ({filteredTrips.length} Total Trips)
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  className="rounded-full border border-[#ECE6DE] bg-[#FAF8F5] px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-white disabled:opacity-40 transition cursor-pointer"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`h-8 w-8 rounded-full text-xs font-bold transition ${
+                        currentPage === p
+                          ? 'bg-[#FF6433] text-white shadow-xs'
+                          : 'text-slate-600 hover:bg-[#FAF8F5]'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  className="rounded-full border border-[#ECE6DE] bg-[#FAF8F5] px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-white disabled:opacity-40 transition cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#ECE6DE] bg-white p-14 text-center">
+        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#ECE6DE] bg-[#FAF8F5] p-14 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FEF3EE] text-[#FF6433] mb-4">
             <Compass className="h-8 w-8" />
           </div>

@@ -36,4 +36,14 @@ api.interceptors.response.use(
   }
 );
 
+export function getImageUrl(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('/uploads/')) {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    return `${apiBase}${url}`;
+  }
+  return url;
+}
+
 export default api;
+

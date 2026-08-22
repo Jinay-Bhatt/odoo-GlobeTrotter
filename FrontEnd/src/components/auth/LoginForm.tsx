@@ -43,7 +43,13 @@ export default function LoginForm() {
     try {
       const res = await login(data.email, data.password);
       toast.success(`Welcome back, ${res.user.firstName}!`);
-      router.push(redirectUrl);
+      if (res.user.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        const safeRedirect = redirectUrl.startsWith('/admin') ? '/trips' : redirectUrl;
+        router.push(safeRedirect);
+      }
+
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Invalid email or password';
       toast.error(msg);
@@ -51,6 +57,7 @@ export default function LoginForm() {
       setIsSubmitting(false);
     }
   };
+
 
   const handleFillTraveler = () => {
     setValue('email', 'user@globetrotter.com');

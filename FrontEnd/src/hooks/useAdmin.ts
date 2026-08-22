@@ -31,6 +31,26 @@ export function useAdminUsers() {
   });
 }
 
+export function usePopularCities() {
+  return useQuery({
+    queryKey: ['popular-cities'],
+    queryFn: async (): Promise<any[]> => {
+      const res = await api.get<{ cities: any[] }>('/api/admin/popular-cities');
+      return res.data.cities;
+    },
+  });
+}
+
+export function usePopularActivities() {
+  return useQuery({
+    queryKey: ['popular-activities'],
+    queryFn: async (): Promise<any[]> => {
+      const res = await api.get<{ activities: any[] }>('/api/admin/popular-activities');
+      return res.data.activities;
+    },
+  });
+}
+
 export function useUpdateUserRole() {
   const queryClient = useQueryClient();
 
@@ -60,3 +80,4 @@ export function useDeleteUser() {
     },
   });
 }
+

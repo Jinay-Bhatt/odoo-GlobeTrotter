@@ -33,7 +33,8 @@ export async function uploadRoutes(server: FastifyInstance) {
     const buffer = await data.toBuffer();
     await fs.promises.writeFile(filePath, buffer);
 
-    const fileUrl = `/uploads/${filename}`;
+    const baseUrl = process.env.API_URL || 'http://localhost:4000';
+    const fileUrl = `${baseUrl}/uploads/${filename}`;
     return reply.status(201).send({
       url: fileUrl,
       filename,
@@ -42,3 +43,4 @@ export async function uploadRoutes(server: FastifyInstance) {
     });
   });
 }
+

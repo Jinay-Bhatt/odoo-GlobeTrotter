@@ -13,6 +13,11 @@ async function main() {
     update: {
       password: adminPassword,
       role: 'ADMIN',
+      firstName: 'Admin',
+      lastName: 'User',
+      city: 'Ahmedabad',
+      country: 'India',
+      photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
     },
     create: {
       email: 'admin@globetrotter.com',
@@ -33,6 +38,11 @@ async function main() {
     update: {
       password: userPassword,
       role: 'TRAVELER',
+      firstName: 'Alex',
+      lastName: 'Morgan',
+      city: 'London',
+      country: 'United Kingdom',
+      photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&auto=format&fit=crop&q=80',
     },
     create: {
       email: 'user@globetrotter.com',
@@ -45,6 +55,7 @@ async function main() {
       photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&auto=format&fit=crop&q=80',
     },
   });
+
 
   // 3. Seed Cities
   const citiesData = [
