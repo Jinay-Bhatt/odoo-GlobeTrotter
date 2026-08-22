@@ -1,29 +1,33 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
+import Navbar from '@/components/layout/Navbar';
+import Hero from '@/components/landing/Hero';
+import QuickSearch from '@/components/landing/QuickSearch';
+import FeaturedDestinations from '@/components/landing/FeaturedDestinations';
+import Features from '@/components/landing/Features';
+import Testimonials from '@/components/landing/Testimonials';
+import CtaBanner from '@/components/landing/CtaBanner';
+import Footer from '@/components/landing/Footer';
 
 export default function HomePage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.replace('/trips');
-      } else {
-        router.replace('/login');
-      }
-    }
-  }, [isAuthenticated, isLoading, router]);
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
-        <p className="text-sm font-medium text-slate-600">Loading GlobeTrotter...</p>
-      </div>
+    <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-slate-900 selection:bg-[#FF6433] selection:text-white">
+      {/* Top Navbar */}
+      <Navbar />
+
+      {/* Main Content Sections */}
+      <main className="flex-1">
+        <Hero />
+        <QuickSearch />
+        <FeaturedDestinations />
+        <Features />
+        <Testimonials />
+        <CtaBanner />
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
