@@ -5,6 +5,14 @@ DEV_A.md
 DEV_B.md
 DEV_C.md
 DEV_D.md
+API_CONTRACTS.md
+CONTEXT_TODO.md
+TEST.md
+devloper d.md
+devloper*.md
+*.md
+!FrontEnd/README.md
+!README.md
 
 # Dependencies & Build Output
 node_modules/
@@ -25,3 +33,5 @@ backend/.env
 .DS_Store
 Thumbs.db
 *.log
+
+

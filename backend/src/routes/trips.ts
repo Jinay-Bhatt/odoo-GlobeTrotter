@@ -21,10 +21,29 @@ function computeTripStatus(startDate: Date, endDate: Date): TripStatus {
 export async function tripRoutes(server: FastifyInstance) {
   server.addHook('preHandler', authenticate);
 
-  // GET /api/trips
+  // GET /api/trips (Supports server-side pagination & status filtering)
   server.get('/', async (request, reply) => {
+    const { page, limit, status } = request.query as {
+      page?: string;
+      limit?: string;
+      status?: TripStatus;
+    };
+
+    const where: any = { userId: request.user.id };
+    if (status) {
+      where.status = status;
+    }
+
+    const totalTrips = await prisma.trip.count({ where });
+
+    const pageNum = page ? parseInt(page, 10) || 1 : 1;
+    const limitNum = limit ? parseInt(limit, 10) || 10 : 100; // default 100 if omitted
+    const skip = (pageNum - 1) * limitNum;
+
     const trips = await prisma.trip.findMany({
-      where: { userId: request.user.id },
+      where,
+      skip,
+      take: limitNum,
       include: {
         sections: {
           orderBy: { sequence: 'asc' },
@@ -48,8 +67,17 @@ export async function tripRoutes(server: FastifyInstance) {
       };
     });
 
-    return reply.send({ trips: updatedTrips });
+    return reply.send({
+      trips: updatedTrips,
+      pagination: {
+        totalTrips,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(totalTrips / limitNum) || 1,
+      },
+    });
   });
+
 
   // POST /api/trips
   server.post('/', async (request, reply) => {
